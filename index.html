@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>避難所さがし｜ふくしのまち</title>
+<style>
+:root{--ink:#16202b;--ink2:#46586a;--line:#d8dee6;--bg:#f4f6f9;--card:#fff;--slate:#1f2d3d;--slate2:#33465b;--accent:#0f7d6b;--accentbg:#e3f4f0;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-text-size-adjust:100%}
+header{background:linear-gradient(180deg,var(--slate),var(--slate2));color:#fff;padding:22px 18px}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px}
+h1{font-size:21px;font-weight:800;letter-spacing:.02em}
+.sub{font-size:13px;color:#c4d0dc;margin-top:4px}
+main{max-width:680px;margin:0 auto;padding:16px 14px 40px}
+.lead{font-size:14px;color:var(--ink2);margin:6px 2px 16px}
+.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;margin:0 0 14px;box-shadow:0 1px 2px rgba(20,30,40,.04)}
+.card:active{filter:brightness(.98)}
+.card .nm{font-size:18px;font-weight:800;color:var(--slate);display:flex;align-items:center;gap:8px}
+.card .nm .go{margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:var(--accent);padding:6px 12px;border-radius:999px}
+.card .cities{font-size:13.5px;color:var(--ink2);margin-top:8px}
+.card .role{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);background:var(--accentbg);padding:2px 8px;border-radius:6px;margin-top:8px}
+.note{font-size:12.5px;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;line-height:1.7}
+.note b{color:var(--ink)}
+.foot{font-size:11.5px;color:#7a8896;margin-top:18px;line-height:1.7}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>避難所さがし</h1>
+  <div class="sub">ふくしのまち（鴻巣・東松山・久喜 各営業所）</div>
+</div></header>
+<main>
+  <p class="lead">利用者さんやご自身の<b>市町が含まれる営業所版</b>を開いてください。各ツールでは町名検索のほか、スマホなら「📍今いる場所から一番近い避難所」も使えます。</p>
+
+  <a class="card" href="hinanjo.html">
+    <div class="nm">鴻巣営業所版 <span class="go">開く ▶</span></div>
+    <div class="cities">鴻巣市・北本市・吉見町・川島町・加須市・桶川市／要配慮者施設</div>
+    <span class="role">訪問介護・入浴・福祉用具・居宅</span>
+  </a>
+
+  <a class="card" href="hinanjo-higashimatsuyama.html">
+    <div class="nm">東松山営業所版 <span class="go">開く ▶</span></div>
+    <div class="cities">東松山市・滑川町・嵐山町・坂戸市・鳩山町・毛呂山町・吉見町／鶴ヶ島市・越生町・ときがわ町（福祉用具レンタル）</div>
+    <span class="role">東松山エリア</span>
+  </a>
+
+  <a class="card" href="hinanjo-kuki.html">
+    <div class="nm">久喜営業所版 <span class="go">開く ▶</span></div>
+    <div class="cities">久喜市・蓮田市・白岡市・加須市・幸手市・宮代町・杉戸町・五霞町</div>
+    <span class="role">久喜エリア</span>
+  </a>
+
+  <div class="note">
+    <b>使い方のポイント</b><br>
+    ・町名（字・丁目）や施設名を入れると、その地点から近い順に表示します。<br>
+    ・色は <span style="color:#0f7d6b">水害1階○</span>／<span style="color:#b8860b">上階へ</span>／<span style="color:#c0392b">水害×</span>。<br>
+    ・「📍今いる場所から…」はスマホのGPSを使います（初回に位置情報の許可が必要）。
+  </div>
+
+  <div class="foot">
+    避難所データ出典：国土地理院 指定緊急避難場所・指定避難所データ／各市町公式の避難所一覧（鴻巣・桶川・加須など）。このツール作成：2026年6月。<b>情報は古くなります</b>—開設状況は災害ごとに変わります。実際の避難は各市町の防災行政無線・公式サイト・防災アプリの最新情報に従ってください。
+  </div>
+</main>
+</body>
+</html>
