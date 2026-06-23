@@ -59,7 +59,7 @@ header{max-width:1180px;margin:0 auto}
 details.help{max-width:1180px;margin-left:auto;margin-right:auto}
 main{max-width:1180px;margin:0 auto}
 #out{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px 14px;align-items:start}
-#out>.sec,#out>.note,#out>.alert,#out>.links,#out>.empty,#out>.count,#out>.cols,#out>button{grid-column:1/-1}
+#out>.sec,#out>.note,#out>.alert,#out>.links,#out>.empty,#out>.count,#out>.cols,#out>button,#out>.tl{grid-column:1/-1}
 @media(max-width:560px){
  #out{display:block}
  .cols{grid-template-columns:1fr}
@@ -73,6 +73,9 @@ footer{color:var(--sub);font-size:11.5px;padding:16px 14px 30px;line-height:1.6}
 .gpsbest b{font-size:17px}
 #out>.gpsbest,#out>.alert{grid-column:1/-1}
 .tl{margin:2px 0 8px}
+.tlgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 14px;align-items:start}
+@media(max-width:560px){.tlgrid{grid-template-columns:1fr}}
+.tllv{min-width:0}
 .tlhead{font-size:12.8px;color:#46586a;background:#fff;border:1px solid var(--line,#d8dee6);border-radius:10px;padding:11px 13px;margin:0 0 12px;line-height:1.7}
 .tllv{border:1px solid var(--line,#d8dee6);border-radius:12px;overflow:hidden;margin:0 0 14px;background:#fff}
 .tllv .bar{display:flex;align-items:center;gap:10px;padding:10px 13px;color:#fff;font-weight:800}
@@ -652,7 +655,9 @@ function renderKazoTimelineU(){
   countEl.textContent="加須市・警戒レベル別の開設避難場所";
   const head=document.createElement("div"); head.className="tlhead";
   head.innerHTML="まずは<b>浸水しない区域の親類・知人宅やホテル</b>へ早めに。確保できない時に、下のレベル・地域別の避難場所へ。屋外や1階は浸水するため<b>建物は上階利用</b>が基本。<b>北川辺・大利根は特に深く</b>、レベル2（3〜2日前）の段階で<b>市外への広域避難</b>を。";
-  out.appendChild(head);
+  const wrap=document.createElement("div"); wrap.className="tl";
+  wrap.appendChild(head);
+  const grid=document.createElement("div"); grid.className="tlgrid";
   KAZO_TL.forEach(L=>{
     const box=document.createElement("div"); box.className="tllv "+L.cls;
     box.innerHTML=`<div class="bar"><span class="lvno">${L.lv}</span><span class="lvnm">${L.nm}</span><span class="lvwhen">${L.when}</span></div>`;
@@ -665,9 +670,11 @@ function renderKazoTimelineU(){
       a.innerHTML=`<div class="an">${ar.a}</div><div class="ap">${chips}</div>`;
       body.appendChild(a);
     });
-    box.appendChild(body); out.appendChild(box);
+    box.appendChild(body); grid.appendChild(box);
   });
-  out.appendChild(note("※小学校等へは小学校等からバスで避難する場合があります（自家用車は駐車できないことも）。開設状況は災害ごとに変わるため、実際は加須市の防災行政無線・公式サイト・防災アプリで確認を。"));
+  wrap.appendChild(grid);
+  wrap.appendChild(note("※小学校等へは小学校等からバスで避難する場合があります（自家用車は駐車できないことも）。開設状況は災害ごとに変わるため、実際は加須市の防災行政無線・公式サイト・防災アプリで確認を。"));
+  out.appendChild(wrap);
 }
 function render(){
  buildTabs();
