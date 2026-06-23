@@ -72,6 +72,20 @@ footer{color:var(--sub);font-size:11.5px;padding:16px 14px 30px;line-height:1.6}
 .gpsbest{background:#eef3fb;border:2px solid var(--accent,#1f6feb);border-radius:10px;padding:12px 14px;margin:6px 0 10px;font-size:15px;line-height:1.6}
 .gpsbest b{font-size:17px}
 #out>.gpsbest,#out>.alert{grid-column:1/-1}
+.tl{margin:2px 0 8px}
+.tlhead{font-size:12.8px;color:#46586a;background:#fff;border:1px solid var(--line,#d8dee6);border-radius:10px;padding:11px 13px;margin:0 0 12px;line-height:1.7}
+.tllv{border:1px solid var(--line,#d8dee6);border-radius:12px;overflow:hidden;margin:0 0 14px;background:#fff}
+.tllv .bar{display:flex;align-items:center;gap:10px;padding:10px 13px;color:#fff;font-weight:800}
+.tllv .bar .lvno{font-size:20px;line-height:1;background:rgba(255,255,255,.22);border-radius:8px;padding:4px 9px}
+.tllv .bar .lvnm{font-size:15px}
+.tllv .bar .lvwhen{margin-left:auto;font-size:11.5px;font-weight:600;opacity:.95;text-align:right;max-width:48%}
+.tllv.l3 .bar{background:#c1342d}.tllv.l4 .bar{background:#7a2c8f}.tllv.l5 .bar{background:#1b1b1b}
+.tlbody{padding:6px 13px 12px}
+.tlarea{padding:9px 0;border-top:1px dashed var(--line,#d8dee6)}.tlarea:first-child{border-top:none}
+.tlarea .an{font-size:13.5px;font-weight:800;color:#16202b;margin:0 0 5px}
+.tlarea .ap{display:flex;flex-wrap:wrap;gap:6px}
+.tlarea .ap a{font-size:12.5px;text-decoration:none;color:#16202b;background:#eef2f6;border:1px solid var(--line,#d8dee6);border-radius:8px;padding:5px 9px;line-height:1.4}
+.tlself{background:#fff7e6 !important;border-color:#ecdca0 !important;color:#6b5512 !important}
 </style>
 </head>
 <body>
@@ -487,13 +501,13 @@ const SRC={
  "久喜市":"出典：国土地理院データ（久喜市）。利根川・中川・元荒川等。栗橋・鷲宮など利根川沿いは深く浸水。詳しい浸水深は久喜市ハザードマップで確認。",
  "蓮田市":"出典：国土地理院データ（蓮田市）。元荒川・綾瀬川沿いの低地は浸水。台地寄りは比較的強い。",
  "白岡市":"出典：国土地理院データ（白岡市）。大部分は台地で水害に比較的強いが、隼人堀川・元荒川沿い低地は注意。",
- "加須市":"出典：国土地理院データ（加須市）。利根川・荒川低地で広く深い浸水。市の水害時の避難行動マップ（令和7年度）で地域別に水害時避難場所を指定。屋外や1階は×が多いので指定建物の上階へ。北川辺・大利根は特に深い。",
+ "加須市":"出典：国土地理院データ（加須市）。利根川・荒川低地で広く深い浸水。市の水害時の避難行動マップ（令和7年度）で地域別に水害時避難場所を指定。屋外や1階は×が多いので指定建物の上階へ。北川辺・大利根は特に深い。『⏱警戒レベル別タイムライン』も参照。",
  "幸手市":"出典：国土地理院データ（幸手市）。中川・権現堂川・倉松川で広く浸水。屋外は水害×が多い。上階か浸水しない区域・市外へ。",
  "宮代町":"出典：国土地理院データ（宮代町）。大落古利根川・備前堀川沿いの低地が浸水。",
  "杉戸町":"出典：国土地理院データ（杉戸町）。大落古利根川・中川沿いの低地が浸水。",
  "五霞町":"出典：国土地理院データ（五霞町・茨城県）。利根川・江戸川・中川に囲まれた低地で広く深く浸水。水害時は早めに町外・高台へ立ち退き避難を。"
 };
-let city=CITIES[0], floodOnly=false;
+let city=CITIES[0], floodOnly=false, timelineMode=false;
 
 // 2点間の距離（m）ハバーサイン
 function distM(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180;
@@ -559,7 +573,7 @@ const tabsEl=document.getElementById("tabs"), q=document.getElementById("q"),
  hintEl=document.getElementById("hint"), countEl=document.getElementById("count"), footEl=document.getElementById("foot");
 
 function buildTabs(){tabsEl.innerHTML="";CITIES.forEach(c=>{const b=document.createElement("button");
- b.textContent=c;b.className=c===city?"on":"";b.onclick=()=>{city=c;render();};tabsEl.appendChild(b);});}
+ b.textContent=c;b.className=c===city?"on":"";b.onclick=()=>{city=c;timelineMode=false;render();};tabsEl.appendChild(b);});}
 document.getElementById("clr").onclick=()=>{q.value="";render();};
 q.addEventListener("input",render);
 const gpsBtn=document.getElementById("gps");
@@ -611,6 +625,50 @@ function card(s,query,dist,near){
 
 function centroid(arr){let la=0,ln=0,n=0;arr.forEach(s=>{if(s.lat&&s.lng){la+=s.lat;ln+=s.lng;n++;}});return n?{lat:la/n,lng:ln/n}:null;}
 
+/* 加須市 警戒レベル別タイムライン（令和7年度 水害時の避難行動マップ） */
+const KAZO_TL=[
+ {lv:3,nm:"高齢者等避難",when:"台風接近 2〜1日前（明るいうちに）。高齢者・要配慮者は避難開始",cls:"l3",areas:[
+   {a:"北川辺地域",p:["市民プラザかぞ","加須文化・学習センター（パストラルかぞ）","加須市民体育館"]},
+   {a:"大利根地域",p:["騎西総合体育館（ふじアリーナ）"]},
+   {a:"樋遣川地区",p:["騎西文化・学習センター（キャッスルきさい）2階"]},
+   {a:"大越地区",p:["騎西文化・学習センター（キャッスルきさい）1階"]},
+   {a:"上記以外の地域",self:true,p:["自宅2〜4階以上、または最寄りの小学校"]},
+ ]},
+ {lv:4,nm:"避難指示（全員避難）",when:"台風接近 当日（明るいうちに）。危険な場所から全員避難",cls:"l4",areas:[
+   {a:"北川辺地域",p:["不動岡高校","昭和中学校","加須西中学校","大桑小学校","加須平成中学校","花崎北小学校","志多見小学校","市民プラザかぞ","パストラルかぞ","加須市民体育館","加須コミュニティセンター","加須クリーンセンター","南篠崎コミュニティセンター","並木製作所","ブリヂストンフローテック","むさしの村（駐車場・屋内）","立正佼成会埼玉教会（駐車場）","市外広域避難場所"]},
+   {a:"大利根地域",p:["加須東中学校","平成国際大学","水深小学校","騎西小学校","騎西中学校","田ケ谷小学校","種足小学校","鴻茎小学校","高柳小学校","花咲徳栄高校","ふじアリーナ","川口コミュニティセンター","加須げんきプラザ","環境浄化センター","田ケ谷総合センター","SFAフットボールセンター・彩の国KAZOヴィレッジ（旧騎西高校）","センコー（駐車場）","興和（駐車場）"]},
+   {a:"樋遣川地区",p:["加須小学校","三俣小学校","加須南小学校","キャッスルきさい2階"]},
+   {a:"大越地区",p:["不動岡小学校","礼羽小学校","キャッスルきさい1階"]},
+   {a:"上記以外の地域",self:true,p:["自宅2〜4階以上、または最寄りの小学校"]},
+ ]},
+ {lv:5,nm:"緊急安全確保",when:"災害切迫時（時間に関わらず）。命の危険、直ちに安全確保",cls:"l5",areas:[
+   {a:"北川辺地域",p:["開智未来中学・高校"]},
+   {a:"大利根地域",p:["大利根中学校","藤倉コンポジット","サンヨーメディカル","大光電機"]},
+   {a:"樋遣川・大越地区",p:["樋遣川小学校","加須北中学校"]},
+ ]},
+];
+function renderKazoTimelineU(){
+  hintEl.innerHTML="加須市『水害時の避難行動マップ（令和7年度）』より。<b>お住まいの地域</b>と<b>警戒レベル</b>で開く避難場所が違います。施設名をタップで地図。";
+  countEl.textContent="加須市・警戒レベル別の開設避難場所";
+  const head=document.createElement("div"); head.className="tlhead";
+  head.innerHTML="まずは<b>浸水しない区域の親類・知人宅やホテル</b>へ早めに。確保できない時に、下のレベル・地域別の避難場所へ。屋外や1階は浸水するため<b>建物は上階利用</b>が基本。<b>北川辺・大利根は特に深く</b>、レベル2（3〜2日前）の段階で<b>市外への広域避難</b>を。";
+  out.appendChild(head);
+  KAZO_TL.forEach(L=>{
+    const box=document.createElement("div"); box.className="tllv "+L.cls;
+    box.innerHTML=`<div class="bar"><span class="lvno">${L.lv}</span><span class="lvnm">${L.nm}</span><span class="lvwhen">${L.when}</span></div>`;
+    const body=document.createElement("div"); body.className="tlbody";
+    L.areas.forEach(ar=>{
+      const a=document.createElement("div"); a.className="tlarea";
+      const chips=ar.p.map(n=> ar.self
+        ? `<a class="tlself" style="pointer-events:none">${n}</a>`
+        : `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("加須市 "+n.replace(/（.*?）/g,""))}" target="_blank" rel="noopener">${n}</a>`).join("");
+      a.innerHTML=`<div class="an">${ar.a}</div><div class="ap">${chips}</div>`;
+      body.appendChild(a);
+    });
+    box.appendChild(body); out.appendChild(box);
+  });
+  out.appendChild(note("※小学校等へは小学校等からバスで避難する場合があります（自家用車は駐車できないことも）。開設状況は災害ごとに変わるため、実際は加須市の防災行政無線・公式サイト・防災アプリで確認を。"));
+}
 function render(){
  buildTabs();
  const query=norm(q.value), raw=q.value.trim();
@@ -618,6 +676,11 @@ function render(){
  hintEl.innerHTML="<b>町名を入れる</b>と、その地点から<b>近い順</b>に並びます（例：本町／栗橋／菖蒲）。色は<span style='color:var(--ok)'>水害1階○</span>／<span style='color:var(--warn)'>上階へ</span>／<span style='color:var(--ng)'>水害×</span>。";
  const fb=document.createElement("button");fb.textContent="水害時に使える所のみ";fb.className=floodOnly?"on":"";
  fb.onclick=()=>{floodOnly=!floodOnly;render();};segEl.appendChild(fb);
+ if(city==="加須市"){
+  const tb=document.createElement("button");tb.textContent="⏱ 警戒レベル別タイムライン";tb.className=timelineMode?"on":"";
+  tb.onclick=()=>{timelineMode=!timelineMode;floodOnly=false;render();};segEl.appendChild(tb);
+  if(timelineMode && !raw){ renderKazoTimelineU(); return; }
+ }
 
  const inCity=RAW.filter(s=>s.city===city);
  const floodOk=s=>s.flood==="ok"||s.flood==="up";
