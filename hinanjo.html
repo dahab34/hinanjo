@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>避難所さがし 鴻巣営業所版</title>
+<title>埼玉 避難所ナビ｜鴻巣版</title>
 <style>
   :root{
     --ink:#16202b; --ink2:#46586a; --line:#d8dee6; --bg:#f4f6f9; --card:#ffffff;
@@ -113,12 +113,16 @@ details.help[open] summary{border-bottom:1px solid var(--line)}
 .tlarea .ap a{font-size:12.5px;text-decoration:none;color:var(--ink);background:#eef2f6;border:1px solid var(--line);border-radius:8px;padding:5px 9px;line-height:1.4}
 .tlarea .ap a:active{filter:brightness(.95)}
 .tlself{background:#fff7e6;border-color:#ecdca0;color:#6b5512}
+.share{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.share button{border:1px solid #d5dbe3;background:#fff;color:#5b6573;font-size:12px;padding:4px 9px;border-radius:14px;cursor:pointer}
+.share button.line{background:#06c755;border-color:#06c755;color:#fff;font-weight:600}
+.share button.mail{color:#2b5d8a;border-color:#2b5d8a}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>避難所さがし　鴻巣営業所版</h1>
+    <h1>埼玉 避難所ナビ｜鴻巣版</h1><a href="https://dahab34.github.io/hinanjo-saitama-a/hinanjo-areas.html" style="display:inline-block;font-size:12.5px;color:#2b5d8a;margin:-4px 0 6px;text-decoration:none">‹ 市町村一覧にもどる</a>
     <p>鴻巣市・北本市・吉見町・川島町・加須市・桶川市／地区名・住所・施設名で検索、町名から近い順</p>
   </header>
   <details class="help"><summary>避難所の種類と、どんな時に使うか</summary>
@@ -1037,7 +1041,7 @@ function renderFoot(){
     "鴻巣市":"出典：鴻巣市水害ハザードマップ（令和2年9月発行）／指定・補助・福祉避難所一覧",
     "北本市":"出典：北本市 広域避難所・指定緊急避難場所一覧",
     "川島町":"出典：川島町 指定避難所・指定緊急避難場所一覧／広域避難場所一覧",
-    "桶川市":"出典：国土地理院 指定緊急避難場所・指定避難所データ（桶川市）。台地中心。西部の川田谷（荒川沿い）は浸水注意。",
+    "桶川市":"出典：桶川市公式 指定避難場所・避難所一覧（施設・電話番号）。座標と水害○×は国土地理院データより。台地中心。西部の川田谷（荒川沿い）は浸水注意。",
     "加須市":"出典：国土地理院 指定緊急避難場所・指定避難所データ（加須市）。屋外の緊急避難場所は洪水×。建物の上階での垂直避難可否・浸水深は加須市ハザードマップで要確認。種別未掲載（-）は指定避難所のみで災害種別データ未掲載。",
     "吉見町":"出典：吉見町防災ハザードマップ（令和3年3月版）P7-8 避難所一覧（全44か所）",
     "要配慮者施設":"出典：鴻巣市防災マップ 要配慮者利用施設一覧（浸水想定：荒川等／利根川等。利根川等は小山川・福川・女堀川流域を含む）"
@@ -1409,7 +1413,53 @@ function renderOkegawa(query){
   out.appendChild(cols);
 }
 
+try{const _c=new URLSearchParams(location.search).get("city");if(_c&&CITIES.includes(_c)){city=_c;[...tabsEl.children].forEach(x=>x.classList.toggle("active",x.textContent===_c));}}catch(e){}
 render();
+
+/* ===== 共有（LINE・メール・端末の共有）DOM後付け版 ===== */
+(function(){
+ const FOOT="\n\n※開設状況は災害ごとに変わります。市町村の最新情報を確認してください。";
+ const gsi=(la,ln)=>`https://maps.gsi.go.jp/#17/${la}/${ln}/&base=std&ls=std&disp=1&vs=c1g1j0h0k0l0u0t0z0r0s0m0f0&d=m`;
+ function row(subj,getText){
+  const d=document.createElement("div");d.className="share";
+  const mk=(cls,label,fn)=>{const b=document.createElement("button");b.className=cls;b.textContent=label;b.onclick=e=>{e.stopPropagation();fn(b);};d.appendChild(b);};
+  mk("line","LINEで送る",()=>location.href="https://line.me/R/share?text="+encodeURIComponent(getText()));
+  mk("mail","✉ メール",()=>location.href="mailto:?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(getText()));
+  if(navigator.share) mk("","💬 SMS・他のアプリ",()=>navigator.share({title:subj,text:getText()}).catch(()=>{}));
+  mk("",'コピー',b=>{const t=getText(),ok=()=>{const o=b.textContent;b.textContent="✓ コピー済";setTimeout(()=>b.textContent=o,1500);};
+   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(ok,()=>prompt("コピーしてください",t));else prompt("コピーしてください",t);});
+  return d;
+ }
+ function cardText(c){
+  const nm=c.querySelector(".name"); if(!nm) return null;
+  const name=[...nm.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim();
+  const kind=[...nm.querySelectorAll(".kind")].map(k=>k.textContent).join("・");
+  const ad=c.querySelector(".addr"); let addr="",map="",la=null,ln=null;
+  if(ad){const cl=ad.cloneNode(true);cl.querySelectorAll("a").forEach(a=>a.remove());addr=cl.textContent.replace(/[\s　·]+$/,"").replace(/\s+/g," ").trim();
+   const dir=ad.querySelector('a[href*="maps/dir"]'); const m=dir&&dir.href.match(/destination=([\d.]+),([\d.]+)/);
+   if(m){la=m[1];ln=m[2];map=`https://www.google.com/maps/search/?api=1&query=${la},${ln}`;}
+   else{const a=ad.querySelector('a[href*="google.com/maps"]');if(a)map=a.href;}}
+  const pills=[...c.querySelectorAll(".row .pill")].map(p=>p.textContent.trim()).filter(Boolean).join(" / ");
+  let t=`【避難先】${name}${kind?`（${kind}）`:""}`;
+  if(addr) t+=`\n住所：${addr}`; if(pills) t+=`\n${pills}`; if(map) t+=`\n地図：${map}`; if(la) t+=`\n地理院地図：${gsi(la,ln)}`;
+  return {name,text:t+FOOT};
+ }
+ function enhance(){
+  document.querySelectorAll(".card").forEach(c=>{
+   if(c.querySelector(".share")) return; const d=cardText(c); if(!d||!d.name) return;
+   c.appendChild(row(`避難先：${d.name}`,()=>cardText(c).text));
+  });
+  document.querySelectorAll(".gpsbest").forEach(g=>{
+   if(g.querySelector(".share")) return;
+   const t=()=>{const b=g.querySelector("b");const r=g.querySelector('a[href*="maps/dir"]');const z=g.querySelector('a[href*="ll="]');
+    const m=z&&z.href.match(/ll=([\d.]+),([\d.]+)/);
+    return `【現在地から一番近い避難先】\n${g.textContent.split("▶")[0].replace("🚶","").trim()}`+(r?`\nルート：${r.href}`:"")+(m?`\n現在地：https://www.google.com/maps/search/?api=1&query=${m[1]},${m[2]}`:"")+FOOT;};
+   const s=row("現在地から一番近い避難先",t);g.appendChild(s);
+  });
+ }
+ let q=false; new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;enhance();});}).observe(document.body,{childList:true,subtree:true});
+ enhance();
+})();
 </script>
 </body>
 </html>
