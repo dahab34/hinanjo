@@ -88,6 +88,11 @@ footer{color:var(--sub);font-size:11.5px;padding:16px 14px 30px;line-height:1.6}
 .printbtn.main{background:var(--accent);color:#fff}
 .printbtn.ready{background:#1d7a3d;border-color:#1d7a3d;color:#fff}
 .printhint{font-size:12px;color:var(--sub);margin-top:6px}
+#cityDocs{font-size:13px;}
+.share.one{justify-content:flex-end}
+.share .sendone{font-size:12px;padding:4px 12px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--sub);cursor:pointer}
+#cityDocs{margin:6px 2px 2px;line-height:1.7}
+#cityDocs a{margin-right:2px}
 #psLiveWrap{margin-top:10px}
 #psLive{height:340px;border-radius:10px;border:1px solid var(--line);background:#e9edf2;z-index:0}
 @media (min-width:900px){#psLive{height:440px}}
@@ -786,6 +791,7 @@ function colDiv(title,arr,query,hiNear){
 function note(h){const d=document.createElement("div");d.className="note";d.innerHTML=h;return d;}
 try{const _c=new URLSearchParams(location.search).get("city");if(_c&&CITIES.includes(_c))city=_c;}catch(e){}
 render();
+const CITYDOCS={"加須市": [["水害時避難行動マップ", "https://www.city.kazo.lg.jp/material/files/group/18/kazo_suigai_chizu_2025.pdf"]], "鴻巣市": [["避難所資料", "https://www.city.kounosu.saitama.jp/uploaded/attachment/28597.pdf"], ["避難所一覧（福祉・補助避難所）", "https://www.city.kounosu.saitama.jp/site/saigaitaiou/1895.html"]], "東松山市": [["避難所資料", "https://www.city.higashimatsuyama.lg.jp/uploaded/attachment/18643.pdf"]], "北本市": [["洪水ハザードマップ", "https://www.city.kitamoto.lg.jp/material/files/group/5/kozui_0225.pdf"]], "吉見町": [["防災マップ（避難所）", "https://www.town.yoshimi.saitama.jp/material/files/group/2/bousai_P07-P08.pdf"]], "川島町": [["防災マップ（避難所）", "https://www.town.kawajima.saitama.jp/secure/1515/P10-11.pdf"]], "桶川市": [["避難場所一覧", "https://www.city.okegawa.lg.jp/material/files/group/16/3hinannbasho.pdf"]], "久喜市": [["避難所・避難場所一覧", "https://www.city.kuki.lg.jp/_res/projects/default_project/_page_/001/007/443/1007443_021.pdf"], ["ハザードマップ（全ページ）", "https://www.city.kuki.lg.jp/_res/projects/default_project/_page_/001/007/443/r5.3hm-zenpeji.pdf"]], "幸手市": [["洪水ハザードマップ", "https://www.city.satte.lg.jp/material/files/group/39/satte_kouzui_map.pdf"], ["地震ハザードマップ", "https://www.city.satte.lg.jp/material/files/group/39/satte_jishin_map.pdf"]], "杉戸町": [["洪水ハザードマップ", "https://www.town.sugito.lg.jp/uploaded/attachment/13861.pdf"]], "宮代町": [["避難所一覧", "https://www.town.miyashiro.lg.jp/cmsfiles/contents/0000025/25603/P07-P08_hinanjoitiranzentaisakuinzu.pdf"]], "坂戸市": [["防災関連施設一覧", "https://www.city.sakado.lg.jp/uploaded/attachment/34390.pdf"]]};
 
 /* ===== 住所から探す ＋ 印刷シート ===== */
 let CURBASE="現在地", QRLIB=null;
@@ -967,6 +973,14 @@ async function makeFile(btn,type,fname,label){
 }
 function alertMsg(t){ const d=document.querySelector(".printhint"); if(d){ d.textContent="⚠ "+t; d.style.color="#a33"; } }
 async function saveBlob(blob,name){
+ // パソコン（Chrome・Edge）は「名前を付けて保存」の画面で保存先を選べるようにする
+ if(window.showSaveFilePicker&&!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+  try{ const pdf=blob.type==="application/pdf";
+   const hnd=await showSaveFilePicker({suggestedName:name,types:[{description:pdf?"PDF":"画像",accept:pdf?{"application/pdf":[".pdf"]}:{"image/png":[".png"]}}]});
+   const w=await hnd.createWritable(); await w.write(blob); await w.close();
+   if(pdf){ const u=URL.createObjectURL(blob); window.open(u,"_blank"); setTimeout(()=>URL.revokeObjectURL(u),60000); }
+   return; }catch(e){ if(e&&e.name==="AbortError") return; }
+ }
  const f=new File([blob],name,{type:blob.type});
  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:name}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
@@ -988,6 +1002,33 @@ function doPrint(){
  window.addEventListener("afterprint",done);
  window.print(); setTimeout(done,2000);
 }
+
+/* ===== 各施設カードの送るボタンを「📤 送る」1つに ===== */
+(function(){
+ function one(){
+  document.querySelectorAll(".card .share:not(.one)").forEach(d=>{
+   d.classList.add("one"); const bs=[...d.querySelectorAll("button")];
+   const nat=bs.find(b=>/SMS|他のアプリ/.test(b.textContent)), cp=bs.find(b=>/コピー/.test(b.textContent));
+   bs.forEach(b=>b.style.display="none");
+   const b=document.createElement("button"); b.className="sendone"; b.textContent=nat?"📤 送る":"📤 送る（コピー）";
+   b.onclick=e=>{e.stopPropagation(); (nat||cp).click(); if(!nat){const o=b.textContent;b.textContent="✓ コピーしました";setTimeout(()=>b.textContent=o,1500);}};
+   d.appendChild(b);
+  });
+ }
+ let q=false; new MutationObserver(()=>{if(q)return;q=true;requestAnimationFrame(()=>{q=false;one();});}).observe(document.body,{childList:true,subtree:true});
+ one();
+})();
+
+/* ===== 市町の公式資料（ハザードマップ・避難所一覧）へのリンク ===== */
+(function(){
+ if(typeof CITYDOCS==="undefined"||typeof tabsEl==="undefined") return;
+ const box=document.createElement("div"); box.id="cityDocs"; tabsEl.insertAdjacentElement("afterend",box);
+ const show=()=>{ const L=CITYDOCS[city]||[];
+  box.innerHTML=L.length?`📄 <b>${city}の公式資料</b>：`+L.map(d=>`<a href="${d[1]}" target="_blank" rel="noopener">${d[0]}</a>`).join("　"):"";
+  box.style.display=L.length?"":"none"; };
+ const orig=render; render=function(){ const r=orig.apply(this,arguments); show(); return r; };
+ show();
+})();
 try{const _p=new URLSearchParams(location.search),_la=parseFloat(_p.get("lat")),_ln=parseFloat(_p.get("lng"));if(isFinite(_la)&&isFinite(_ln))setTimeout(()=>_GPS(_la,_ln,null,_p.get("label")||"指定した地点"),60);}catch(e){}
 </script>
 </body>
