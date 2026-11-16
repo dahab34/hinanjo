@@ -1,0 +1,29 @@
+name: ファイル整理
+on:
+  push:
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: フォルダの中や長い名前で上がった html を正しい名前で一番上へ
+        shell: bash
+        run: |
+          while IFS= read -r p; do
+            b=$(basename "$p"); n=$(printf '%s' "$b" | grep -oE 'hinanjo[-a-z0-9_]*\.html$' || true)
+            [ -z "$n" ] && continue
+            [ "$p" = "$n" ] && continue
+            mv -f "$p" "./$n"; echo "整理: $p → $n"
+          done < <(find . -type f -name "*hinanjo*.html" -not -path "./.git/*" -not -path "./.github/*" -printf '%P\n' | while read -r q; do printf '%s\t%s\n' "$(git log -1 --format=%ct -- "$q" 2>/dev/null || echo 0)" "$q"; done | sort -n | cut -f2-)
+          find . -maxdepth 2 -type f -size 0 -not -path "./.git/*" -not -path "./.github/*" -delete
+          find . -mindepth 1 -type d -empty -not -path "./.git*" -delete
+      - name: 変更があればコミット
+        run: |
+          git config user.name "hinanjo-bot"
+          git config user.email "hinanjo-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "変更なし"; else git commit -m "ファイル整理" && git push; fi
